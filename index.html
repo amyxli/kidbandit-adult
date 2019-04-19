@@ -1,0 +1,640 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>UNSW Monsters Game</title>
+    <script src="./js/jspsych.js"></script>
+    <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="./js/plugins/jspsych-html-button-response.js"></script>
+    <script src="./js/plugins/jspsych-image-keyboard-response.js"></script>
+    <script src="./js/plugins/jspsych-animation.js"></script>
+    <script src="./js/plugins/jspsych-survey-text.js"></script>
+    <script src="./js/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="./js/plugins/jspsych-audio-keyboard-response.js"></script>
+    <script src="./js/plugins/jspsych-audio-button-response.js"></script>
+    <script src="./js/welcome.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <link href="./js/css/jspsych_mod.css" rel="stylesheet" type="text/css"></link>
+  </head>
+
+  <body>
+    <div id="welcome"></div>
+
+  </body>
+
+  <script>
+
+  // run the welcome
+  welcome.run();
+
+  window.onbeforeunload = function(){
+    return "Are you sure you want to leave the experiment?";
+  };
+    // -------- Set up --------
+    /* initialise timeline*/
+    var timeline=[];
+    var introloop=[];
+    var turkcode = 'C' + (Math.floor(Math.random() * 899999) + 100000).toString();
+    // turkcode
+	  var images = [
+      // images for monsters and buttons 
+		  './img/greenmonster.png',
+		  './img/purplemonster.png',
+		  './img/redmonster.png',
+		  './img/yellowmonster.png',
+		  './img/purplepractise.png',
+      './img/redpractise.png',
+      './img/none.png',
+      './img/idk.png',
+      // images for instructions
+      './img/instruction_stars.png',
+      './img/instruction_arrow.png',
+      './img/instruction_starmeter1.png',
+      './img/instruction_starmeter2.png',
+      './img/instruction_sticker.png',
+      './img/screen1a.png',
+      './img/screen1b.png',
+      './img/screen1c.png',
+      './img/screen1d.png',
+      './img/screen2.jpg',
+      './img/screen3a.jpg',
+      './img/screen3b.jpg',
+      './img/screen3c.jpg',
+      './img/screen3d.jpg',
+      './img/screen4a.jpg',
+      './img/screen4b.jpg',
+      './img/screen4c.jpg',
+      './img/screen4d.jpg',
+      './img/screen5a.jpg',
+      './img/screen5b1.jpg',
+      './img/screen5b2.jpg',
+      './img/screen5b3.jpg',
+      './img/screen5b4.jpg',
+      './img/screen5b5.jpg',
+      './img/screen5b6.jpg',
+      './img/screen5c.jpg',
+      './img/screen5d.jpg',
+      './img/screen5e.jpg',
+      // images for stars
+      './img/1star.png',
+      './img/2star.png',
+      './img/3star.png',
+      './img/6star.png',
+      './img/8star.png',
+      // others
+      './img/minions.gif', // minions cheering
+      './img/confetti.gif' // cartoon cat giving thumbs up
+    ];
+
+    var sound = [
+      'sound/1star.wav',
+      'sound/2star.wav',
+      'sound/3star.wav',
+      'sound/6star.wav',
+      'sound/8star.wav',
+      'sound/celebration.wav',
+    ];
+
+    // function to start the jsPsych experiment
+    function startExperiment(){
+
+      function download_data(data) {
+        var csvString = jsPsych.data.dataAsCSV();
+        var a         = document.createElement('a');
+        a.href        = 'data:attachment/csv,' + csvString;
+        a.target      = '_blank';
+        a.download    = 'ExperimentData.csv';
+
+        document.body.appendChild(a);
+        a.click();
+      }
+      // record the turkcode in the jsPsych data
+      jsPsych.data.addProperties({
+        turkcode: turkcode
+      });
+
+      jsPsych.init({
+        timeline: timeline,
+        preload_audio: sound,
+        preload_images: images,
+        on_finish: function() {
+          endExperiment(jsPsych.data.get().csv(), function() { document.write('<div id="endscreen" class="endscreen" style="width:1000px"><div class="endscreen" style="text-align:center; border:0px solid; padding:10px; font-size:120%; width:800px; float:right"><p><br><br><br>All done!<br><br>Your completion code is <span id="turkcode" style="font-weight:bold;font-size:130%">' + turkcode + '</span>. To receive payment for the HIT, return to the Amazon Mechanical Turk page and enter this code. Please contact us if something goes wrong and we\'ll fix it as quickly as possible.</p></div></div>') }
+        )}, // uncomment for cloud save
+        show_progress_bar: true,
+        auto_update_progress_bar: false
+      });
+      } 
+
+    // function to end the experiment
+    function endExperiment(dataset,callback) {
+      $.post('submit',{"content": dataset}); // uncomment to post data
+      //console.log(dataset) // comment out to avoid console log
+      setTimeout(callback,1000)
+      // setTimeout specifies after a certain no of milliseconds
+    }
+
+    // -------- Randomisation set up
+
+      function shuffle(array) {
+        var currentIndex = array.length, temporaryValue, randomIndex;
+
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+
+          // Pick a remaining element...
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+
+          // And swap it with the current element.
+          temporaryValue = array[currentIndex];
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+      }
+
+      init_choices1 = [1,2,3,6]
+
+      // Randomise the starting position of the monsters
+      imgnames = shuffle(["yellowmonster","redmonster","greenmonster","purplemonster"]);
+      pointvals_firsthalf = shuffle([1,2,3,6]);
+      pointvals_secondhalf = [];
+
+      // create options for posttest
+      otherops = ["none", "idk"];
+      posttest_choices = imgnames.concat(otherops);
+
+  // -------- Randomly assign participant to condition
+  var condition = ['static', 'dynamic'];
+  var condition = jsPsych.randomization.sampleWithoutReplacement(condition, 1)[0]; // not sure what this does
+  jsPsych.data.addProperties({
+          condition: condition
+        });
+
+  // ------- Switch values based on condition
+
+      if (condition == 'dynamic') {
+        // Halfway through, change point value of 1 to 8
+        for (var i = 0; i < pointvals_firsthalf.length; i++) {
+          if (pointvals_firsthalf[i] == 1) {
+            pointvals_secondhalf.push(8);
+          } else {
+            pointvals_secondhalf.push(pointvals_firsthalf[i]);
+          }
+        }
+      } else {
+        // Make values stay the same
+        for (var i = 0; i < pointvals_firsthalf.length; i++) {
+          if (pointvals_firsthalf[i] == 1) {
+            pointvals_secondhalf.push(1);
+          } else {
+            pointvals_secondhalf.push(pointvals_firsthalf[i]);
+          }
+        }
+      }
+
+
+    // record initial point values in data
+    jsPsych.data.addProperties({
+           pointvals_firsthalf: pointvals_firsthalf
+         });
+
+    // -------- Set up of accumulating variables
+    var pointsInitial = 0;
+    var pointsAdded = 0;
+    var totalPoints = 0;
+
+    function addNum(pointsInitial,pointsAdded){
+      return pointsInitial+pointsAdded
+    };
+    var pointsCurrent = addNum(pointsInitial,pointsAdded);
+
+    pointsCurrent = addNum(pointsCurrent,pointsAdded);
+
+    // -------- Instructions & quiz --------
+
+    // experimenter introduction
+
+    var intro = {
+      type: 'html-button-response',
+      timing_post_trial: 0,
+      choices: ['Click here to continue'],
+      on_trial_start: function() { setTimeout(function() {setDisplay("jspsych-btn","")}, 1000)},
+      is_html: true,
+      timeline: [
+          {stimulus: "<p>"+
+                "Hi! Welcome to the experiment. This study takes the form of a simple decision making task.<br> " +
+                "It is designed to help us learn how children make decisions, so it will look like a kid's game.<br> " +
+                "However, in order to understand how kids make choices, we need to compare what they do to adults<br> " +
+                "doing the same task. That's you! Because of this, we ask you to take the task seriously and do your<br>" +
+                "best, even if the task seems like a strange thing for an adult to do." +
+                "</p>"
+          },
+        ]
+    };
+
+    // images for animated instructions sequence
+    var instruction_sequence1 = [
+         'img/screen1a.png',
+         'img/screen1b.png',
+         'img/screen1c.png',
+    ]
+    var instruction_sequence2 = [
+          'img/screen2.jpg',
+          'img/screen2.jpg',
+          'img/screen2.jpg',
+          'img/screen2.jpg',
+          'img/screen2.jpg',
+          'img/screen3a.jpg',
+          'img/screen3b.jpg',
+          'img/screen3c.jpg',
+          'img/screen3d.jpg',
+          'img/screen4a.jpg',
+          'img/screen4a.jpg',
+          'img/screen4b.jpg',
+          'img/screen4c.jpg',
+          'img/screen4d.jpg',
+          'img/screen4d.jpg',
+          'img/screen5a.jpg',
+          'img/screen5b1.jpg',
+          'img/screen5b2.jpg',
+          'img/screen5b3.jpg',
+          'img/screen5b4.jpg',
+          'img/screen5b5.jpg',
+          'img/screen5b6.jpg',
+          'img/screen5c.jpg',
+          'img/screen5d.jpg',
+          'img/screen5d.jpg',
+    ]
+    /* define the instruction block(s) */
+
+    // animated instructions 
+    var instruction_block1a={
+        type: 'animation',
+        stimuli: instruction_sequence1,
+        frame_time: 3000,
+        choices: jsPsych.NO_KEYS,
+        timing_post_trial: 0,
+    } 
+
+    var instruction_block1b={
+        type: 'html-button-response',
+        timing_post_trial: 0,
+        stimulus: "<img src='img/screen1d.png'></img>",
+        choices: ['Next >'],
+    } 
+
+    var instruction_block2a={
+        type: 'animation',
+        stimuli: instruction_sequence2,
+        frame_time: 800,
+        choices: jsPsych.NO_KEYS,
+        timing_post_trial: 0,
+    } 
+
+    var instruction_block2b={
+        type: 'html-button-response',
+        timing_post_trial: 0,
+        stimulus: "<img src='img/screen5e.jpg'></img>",
+        choices: ['Got it!'],
+    }
+    introloop.push(intro);
+    introloop.push(instruction_block1a); // <- the setup block gets pushed to a "loop node"
+    introloop.push(instruction_block1b);
+    introloop.push(instruction_block2a);
+    introloop.push(instruction_block2b); 
+
+
+    /* define attention check block */
+
+
+
+/* define instruction check block */
+var instructioncorrect = false;
+var instruction_check = {
+    type: "survey-multi-choice",
+    preamble: ["<p align='center'><b>Check your knowledge before you begin!</b></p>"],
+    questions: [
+      {prompt: "<b>Question 1</b>: How do you get stars in this game?", options: [" You click on the monsters", " You click on the star picture"], required: true},
+      {prompt: "<b>Question 2</b>: Why does this look like a kids game?", options: [" Because the main study will have children participating", " Because we are copying someone else's design", " Something else"], required: true}
+    ],
+    on_finish: function(data) {
+      if( data.responses == '{"Q0":" You click on the monsters","Q1":" Because the main study will have children participating"}') {
+        action = false;
+        instructioncorrect = true;
+      }}
+}
+
+introloop.push(instruction_check)
+
+/* define a page for the incorrect response */
+var showsplash = true;
+var splash_screen = {
+  type: 'html-button-response',
+  timing_post_trial: 0,
+//    button_html: '<button class="jspsych-btn" style="display:none">%choice%</button>',
+  choices: ['Click here to read the instructions again'],
+  on_trial_start: function() {setTimeout(function() {setDisplay("jspsych-btn","")}, 500)},
+  is_html: true,
+  stimulus: "Oh no! One of your answers was incorrect. Let's try again."
+}
+
+/* ...but push it to a conditional node that only shows it if the response was wrong */
+var conditional_splash = {
+  timeline: [splash_screen],
+  conditional_function: function(data) {
+    return !instructioncorrect // skip if correct
+  }
+}
+introloop.push(conditional_splash)
+
+/* finally, add the entirety of this introductory section to a loop node ... */
+var loop_node = {
+  timeline: introloop,
+  loop_function: function(data) {
+    //var action = true;
+    return !instructioncorrect // stop looping if correct
+  }
+}
+timeline.push(loop_node) // ... and add that to the timeline
+
+/* success trial */
+var successtrial = {
+  type: 'html-button-response',
+  timing_post_trial: 0,
+  choices: ['Click here to begin the experiment'],
+  on_trial_start: function() { setTimeout(function() {setDisplay("jspsych-btn","")}, 500)},
+  is_html: true,
+  stimulus: 'Well done!'
+};
+timeline.push(successtrial);
+
+    // -------- the experiment itself -------
+
+    // the "click on a monster" part of the trial...
+    var monster = {
+        type: 'html-button-response',
+        stimulus: "",
+        button_html: '<button class="jspsych-btn-monsters"><img src="img/%choice%.png" width="260px"></button>', // css to force monster buttons to render as squares on iPad
+        choices: imgnames,
+        post_trial_gap: 100,
+    }
+
+
+    // the "see the feedback" part of the trial (1st half)...
+    var feedback1 = {
+      type: 'audio-keyboard-response',
+      stimulus: function(data){
+        var pts = pointvals_firsthalf[jsPsych.data.get().last(1).values()[0].button_pressed];
+        return 'sound/' + pts + 'star.wav'; 
+      },
+        prompt: function(){
+            var last_monster = jsPsych.data.get().last(1).values()[0].button_pressed;
+            return "<img src='img/" + imgnames[last_monster] + ".png' width = 380px> <img src='img/" + pointvals_firsthalf[last_monster] + "star.png' width = 380px>";
+            },
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1400,
+        on_start: function() {
+            var last_monster = jsPsych.data.get().last(1).values()[0].button_pressed;
+            return pointsAdded = pointvals_firsthalf[last_monster];
+            },
+        on_finish: function(data){
+            pointsCurrent = pointsCurrent + pointsAdded;
+            data.earnedThis = pointsAdded;
+            data.earnedCumulative = pointsCurrent;
+            // if condition is static, one star will translate to more progress bar real estate than in dynamic
+            if (condition == 'dynamic') {
+              jsPsych.setProgressBar(pointsCurrent/(6*trials1.repetitions+8*trials2.repetitions))
+            } else if (condition == 'static') {
+              jsPsych.setProgressBar(pointsCurrent/(6*trials1.repetitions+6*trials2.repetitions))
+            }
+      }
+    };
+        // the "see the feedback" part of the trial (2nd half)...
+    var feedback2 = {
+        type: 'audio-keyboard-response',
+        stimulus: function(data){
+        var pts = pointvals_secondhalf[jsPsych.data.get().last(1).values()[0].button_pressed];
+        return 'sound/' + pts + 'star.wav';
+        },
+        is_html:true,
+        prompt: function(){
+            var last_monster = jsPsych.data.get().last(1).values()[0].button_pressed;
+            return "<img src='img/" + imgnames[last_monster] + ".png' width = 380px><img src='img/" + pointvals_secondhalf[last_monster] + "star.png' width = 380px>";
+        },
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1400,
+        response_ends_trial: false,
+        on_start: function() {
+            var last_monster = jsPsych.data.get().last(1).values()[0].button_pressed;
+            return pointsAdded = pointvals_secondhalf[last_monster];
+       },
+        on_finish: function(data){
+            pointsCurrent = pointsCurrent + pointsAdded;
+            data.earnedThis = pointsAdded;
+            data.earnedCumulative = pointsCurrent;
+            if (condition == 'dynamic') {
+              jsPsych.setProgressBar(pointsCurrent/(6*trials1.repetitions+8*trials2.repetitions))
+            } else if (condition == 'static') {
+              jsPsych.setProgressBar(pointsCurrent/(6*trials1.repetitions+6*trials2.repetitions))
+            }
+        }
+    };
+
+
+  
+
+    // push # copies of it to the timeline
+    var trials1 = {
+      timeline: [monster, feedback1],
+      repetitions: 40,
+      randomize_order: false,
+    };
+
+
+    // push # copies of it to the timeline
+    var trials2 = {
+      timeline: [monster, feedback2],
+      repetitions: 40,
+      randomize_order: false,
+    };
+
+    // -------- End screen and post-test questions --------
+    var end_game = {
+      type: 'audio-button-response',
+      on_start: function(){
+          document.querySelector('#jspsych-progressbar-container').style.display = 'none';
+        },
+      timing_post_trial: 0,
+      stimulus:'sound/celebration.wav',
+      prompt: function(){
+          var totalPoints = jsPsych.data.get().last(1).values()[0].earnedCumulative;
+          return "<br><br>Thanks for playing with us! You earned " + totalPoints + " stars!<br><br>" + 
+          "<img src='img/confetti.gif' width='280px'</img> <br> <br>" + // can remove this gif if needed
+          "Wow, that\'s a <b>lot</b> of stars! <br> " +
+          "Now we just a few more questions for you...<br>"
+        },
+      choices: ['Okay!'],
+      timing_post_trial: 0,
+      margin_vertical: '10px',
+    }
+
+    var posttest1 = {
+      type: 'html-button-response',
+      choices: posttest_choices,
+      button_html: '<button class="jspsych-btn-monsters"><img src="img/%choice%.png" width="260px"></button>',
+      post_trial_gap: 800,
+      is_html: true,
+      timeline: [
+        {stimulus:
+            "Which, if any, of these monsters ever gave you <b>1 star</b>?"+
+            "</p>"
+      },
+     ],
+     on_finish: function(data){
+        var pt_pressed = jsPsych.data.get().last(1).values()[0].button_pressed;
+        var pt_chosen = pointvals_firsthalf[pt_pressed];
+        if (pt_chosen == 1){
+          data.posttest = 'correct'
+        } else {
+          data.posttest = 'incorrect'
+        }
+      }
+    }
+
+    var posttest2 = {
+      type: 'html-button-response',
+      choices: posttest_choices,
+      button_html: '<button class="jspsych-btn-monsters"><img src="img/%choice%.png" width="260px"></button>',
+      post_trial_gap: 800,
+      is_html: true,
+      timeline: [
+        {stimulus:
+            "Which, if any, of these monsters ever gave you <b>2 stars</b>?"+
+            "</p>"
+      },
+     ],
+     on_finish: function(data){
+        var pt_pressed = jsPsych.data.get().last(1).values()[0].button_pressed;
+        var pt_chosen = pointvals_secondhalf[pt_pressed];
+        if (pt_chosen == 2){
+          data.posttest = 'correct'
+        } else {
+          data.posttest = 'incorrect'
+        }
+      }
+    }
+
+    var posttest3 = {
+      type: 'html-button-response',
+      choices: posttest_choices,
+      button_html: '<button class="jspsych-btn-monsters"><img src="img/%choice%.png" width="260px"></button>',
+      post_trial_gap: 1000,
+      is_html: true,
+      timeline: [
+        {stimulus:
+            "Which, if any, of these monsters ever gave you <b>3 stars</b>?"+
+            "</p>"
+      },
+     ],
+     on_finish: function(data){
+        var pt_pressed = jsPsych.data.get().last(1).values()[0].button_pressed;
+        var pt_chosen = pointvals_firsthalf[pt_pressed];
+        if (pt_chosen == 3){
+          data.posttest = 'correct'
+        } else {
+          data.posttest = 'incorrect'
+        }
+      }
+    }
+
+    var posttest4 = {
+      type: 'html-button-response',
+      choices: posttest_choices,
+      button_html: '<button class="jspsych-btn-monsters"><img src="img/%choice%.png" width="260px"></button>',
+      post_trial_gap: 800,
+      is_html: true,
+      timeline: [
+        {stimulus:
+            "Which, if any, of these monsters ever gave you <b>6 stars</b>?"+
+            "</p>"
+      },
+     ],
+     on_finish: function(data){
+        var pt_pressed = jsPsych.data.get().last(1).values()[0].button_pressed;
+        var pt_chosen = pointvals_secondhalf[pt_pressed];
+        if (pt_chosen == 6){
+          data.posttest = 'correct'
+        } else {
+          data.posttest = 'incorrect'
+        }
+      }
+    }
+
+    var posttest5 = {
+      type: 'html-button-response',
+      choices: posttest_choices,
+      button_html: '<button class="jspsych-btn-monsters"><img src="img/%choice%.png" width="260px"></button>',
+      post_trial_gap: 800,
+      is_html: true,
+      timeline: [
+        {stimulus:
+            "Which, if any, of these monsters ever gave you <b>8 stars</b>?"+
+            "</p>"
+      },
+     ],
+     on_finish: function(data){
+        var pt_pressed = jsPsych.data.get().last(1).values()[0].button_pressed;
+        var pt_chosen = pointvals_secondhalf[pt_pressed];
+          if (condition == 'dynamic'){
+            if (pt_chosen == 8){
+            data.posttest = 'correct'
+            } else {
+            data.posttest = 'incorrect'
+          }
+        } else {
+          if (pt_pressed == 4) { // if "none" was chosen in static
+            data.posttest = 'correct'
+          } else {
+            data.posttest = 'incorrect'
+          }
+        }
+      }
+    }
+
+    var posttest6 = {
+      type: 'html-button-response',
+      choices: imgnames,
+      button_html: '<button class="jspsych-btn-monsters"><img src="img/%choice%.png" width="260px"></button>',
+      post_trial_gap: 800,
+      is_html: true,
+      timeline: [
+        {stimulus:
+            "Which monster did you like the most?"+
+            "</p>"
+      },
+     ]
+    }
+
+    var posttest7 = {
+      type: 'survey-text',
+      questions: [{prompt: "Why did you like that monster the most?"}],
+    }
+            
+    timeline.push(trials1);
+    timeline.push(trials2);
+    timeline.push(end_game);
+    timeline.push(posttest1);
+    timeline.push(posttest2);
+    timeline.push(posttest3);
+    timeline.push(posttest4);
+    timeline.push(posttest5);
+    timeline.push(posttest6);
+    timeline.push(posttest7);
+
+  </script>
+</html>
